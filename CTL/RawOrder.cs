@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace CTL
+﻿namespace CTL
 {
-    public class RawOrder : IComparable<RawOrder>
+    public class RawOrder
     {
         public int OrderId { get; set; }
         public string FirstName { get; set; }
@@ -13,10 +11,5 @@ namespace CTL
         public string Postal { get; set; }
         public string SKU { get; set; }
         public int Quantity { get; set; }
-
-        public int CompareTo(RawOrder other)
-        {
-            return OrderId.CompareTo(other.OrderId);
-        }
     }
 }

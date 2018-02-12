@@ -14,12 +14,15 @@ namespace CTL
             var rawOrders = ReadOrderFile();
             var orders = ConsolidateOrders(rawOrders);
             UploadOrders(orders);
+            Console.WriteLine("Complete!!!");
             Console.ReadLine();
         }
 
         private static IEnumerable<RawOrder> ReadOrderFile()
         {
-            return Formats.Csv.ReadObjects<RawOrder>("OrderData.csv");
+            return Formats.Csv.ReadObjectValues<RawOrder>("OrderData.csv", validate: true)
+                       .Where(rawOrder => rawOrder.Exception == null)
+                       .Select(rawOrder => rawOrder.Value);
         }
 
         private static IEnumerable<Order> ConsolidateOrders(IEnumerable<RawOrder> rawOrders)
@@ -52,7 +55,7 @@ namespace CTL
             client.AddDefaultHeader("X-Ctl-UserId", ConfigurationManager.AppSettings.Get("APIUserID"));
             client.AddDefaultHeader("X-Ctl-ClientId", ConfigurationManager.AppSettings.Get("APIClientID"));
 
-            orders.ToList().ForEach(order =>
+            orders.AsParallel().ForAll(order =>
             {
                 var request = new RestRequest($"/v1/Orders/{order.Id}", Method.PUT)
                 {
@@ -66,7 +69,7 @@ namespace CTL
                 });
 
                 var response = client.Execute(request);
-                Console.WriteLine(response);
+                Console.WriteLine($"Order {order.Id} - {(int)response.StatusCode}");
             });
         }
     }
